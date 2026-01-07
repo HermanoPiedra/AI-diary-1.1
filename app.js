@@ -1,4 +1,11 @@
 // ====== STATE & CONFIG ======
+
+// ⚠️ PEGA TU CLAVE DENTRO DE LAS COMILLAS (empieza por AIza...)
+const GOOGLE_API_KEY = "AIzaSyD8sWkZ4f38T0P8zrT8WlyU0VR6Kyx5rV8"; 
+
+// Configuración de Gemini 1.5 Flash (Rápido y eficiente)
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
+
 const STORAGE_KEY = 'ai_diary_v1_data';
 let diary = {};
 let currentDate = getToday();
@@ -63,8 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("save-text-entry").addEventListener("click", saveTextEntry);
   document.getElementById("save-audio-entry").addEventListener("click", saveAudioEntry);
 
-  // Acciones Resumen
-  document.getElementById("generate-summary").addEventListener("click", placeholderGenerateSummary);
+  // Acciones Resumen (AHORA CONECTADO A LA IA)
+  document.getElementById("generate-summary").addEventListener("click", generateDailySummaryAI);
   document.getElementById("save-day").addEventListener("click", saveDayData);
 
   // Selector de Emociones (Lógica para todos los chips)
@@ -269,18 +276,13 @@ async function startRecording() {
     };
 
     mediaRecorder.onstop = () => {
-      // Audio procesado (Simulación V1)
-      const blob = new Blob(audioChunks, { type: "audio/webm" });
-      const kb = Math.round(blob.size / 1024);
+      // 1. Crear el archivo de audio
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      
+      // 2. ENVIAR A LA IA (Nueva función)
+      transcribeAudioWithAI(audioBlob);
 
-      const transcriptEl = document.getElementById("audio-transcript");
-
-      // Solo poner placeholder si está vacío (para no borrar ediciones manuales)
-      if (!transcriptEl.value.trim()) {
-        transcriptEl.value = `[Audio grabado: ${kb} KB]\nAquí aparecerá la transcripción de la IA en la V2.\nPuedes editar este texto ahora mismo.`;
-      }
-
-      // IMPORTANTE: Parar el micro hardware
+      // 3. Apagar el micrófono físico
       stream.getTracks().forEach((track) => track.stop());
     };
 
@@ -446,4 +448,123 @@ function saveDayData() {
 
   alert("Datos del día guardados correctamente ✨");
   showScreen("screen-home");
+}`
+
+// ==========================================
+// ====== CEREBRO IA (GOOGLE GEMINI) ========
+// ==========================================
+
+// 1. TRANSCRIPCIÓN DE AUDIO (CLEAN MODE)
+async function transcribeAudioWithAI(audioBlob) {
+  const statusEl = document.getElementById("record-status");
+  const transcriptEl = document.getElementById("audio-transcript");
+  
+  statusEl.textContent = "Procesando con IA (Clean Mode)...";
+  transcriptEl.value = "⏳ La IA está escuchando y limpiando tu audio...";
+
+  try {
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    
+    reader.onloadend = async () => {
+      const base64Audio = reader.result.split(',')[1]; // Limpiar cabecera
+
+      // Prompt: Filosofía de "Clean Mode" (Sin muletillas, literal)
+      const payload = {
+        contents: [{
+          parts: [
+            { text: "Transcribe este audio. REGLAS: 1. Elimina muletillas (eh, um, estee). 2. Corrige repeticiones. 3. NO interpretes ni resumas. 4. Salida: Solo el texto limpio." },
+            { inline_data: { mime_type: "audio/webm", data: base64Audio } }
+          ]
+        }]
+      };
+
+      const response = await fetch(GEMINI_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      
+      if (data.candidates && data.candidates[0].content) {
+        const cleanText = data.candidates[0].content.parts[0].text.trim();
+        transcriptEl.value = cleanText;
+        statusEl.textContent = "Transcripción completada.";
+      } else {
+        throw new Error("La IA no devolvió texto.");
+      }
+    };
+  } catch (error) {
+    console.error("Error IA:", error);
+    statusEl.textContent = "Error de conexión.";
+    transcriptEl.value = "Error: No se pudo conectar con Google. Revisa tu API Key en app.js";
+  }
 }
+
+// 2. RESUMEN DIARIO (ESPEJO OBJETIVO)
+async function generateDailySummaryAI() {
+  ensureDay(currentDate);
+  const dayData = diary[currentDate];
+
+  if (!dayData.entries || dayData.entries.length === 0) {
+    alert("No hay entradas hoy para resumir.");
+    return;
+  }
+
+  const summaryEl = document.getElementById("summary-text");
+  const btn = document.getElementById("generate-summary");
+  
+  // UI de carga
+  summaryEl.textContent = "Analizando patrones del día...";
+  summaryEl.style.opacity = "0.5";
+  btn.disabled = true;
+
+  // Preparar datos para el prompt
+  let textToAnalyze = `Fecha: ${currentDate}\n`;
+  dayData.entries.forEach(e => {
+    textToAnalyze += `[${e.time}] [Emoción Usuario: ${e.emotion}] Texto: ${e.text}\n`;
+  });
+
+  // Prompt: Filosofía de "Espejo Objetivo"
+  const prompt = `
+    Actúa como un asistente de registro objetivo (Logbook).
+    TAREA: Generar un reporte ejecutivo del día.
+    
+    REGLAS FILOSÓFICAS:
+    1. NO eres terapeuta. NO des consejos. NO des ánimos.
+    2. Mantén un tono neutral, periodístico y directo.
+    3. Identifica hechos clave, personas y patrones emocionales reportados explícitamente.
+    4. Estilo: Breve y estructurado.
+    
+    DATOS DEL USUARIO:
+    ${textToAnalyze}
+  `;
+
+  try {
+    const response = await fetch(GEMINI_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+
+    const data = await response.json();
+    
+    if (data.candidates && data.candidates[0].content) {
+      const summary = data.candidates[0].content.parts[0].text;
+      
+      // Guardar y mostrar
+      dayData.summary = summary;
+      summaryEl.textContent = summary;
+      summaryEl.classList.remove("placeholder");
+      saveToLocal();
+    }
+
+  } catch (error) {
+    console.error(error);
+    summaryEl.textContent = "Error al generar resumen. Verifica la consola.";
+  } finally {
+    summaryEl.style.opacity = "1";
+    btn.disabled = false;
+  }
+}`
