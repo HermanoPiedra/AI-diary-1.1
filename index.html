@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Diary V1</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="app">
+
+    <div id="screen-home" class="screen active">
+      <h1 class="title">AI Diary</h1>
+
+      <div class="date-row">
+        <button id="prev-day">&lt;</button>
+        <span id="current-date-label">Hoy</span>
+        <button id="next-day">&gt;</button>
+      </div>
+
+      <div id="entries-list" class="entries-list">
+        </div>
+
+      <button id="go-to-summary" class="primary-button" style="background:#E0E0E0; color:#37352F; margin-top:auto;">
+        Ver Resumen del Día ✨
+      </button>
+
+      <div class="fab-container">
+        <button id="fab-text" class="fab-bubble fab-option">Aa</button>
+        <button id="fab-audio" class="fab-bubble fab-option">🎙️</button>
+        <button id="fab-main" class="fab-main">+</button>
+      </div>
+    </div>
+
+    <div id="screen-new-text" class="screen">
+      <div class="date-row" style="border:none;">
+         <button id="back-from-text" style="padding-left:0; font-size:24px;">←</button>
+         <h1 class="title" style="margin:0;">Nueva Entrada</h1>
+         <div style="width:30px;"></div>
+      </div>
+
+      <div class="input-box">
+        <textarea id="new-text-input" placeholder="¿Qué tienes en mente hoy?"></textarea>
+      </div>
+
+      <div class="emotion-selector">
+        <p class="emotion-label">¿CÓMO TE SIENTES? (Obligatorio)</p>
+        <div class="emotion-chips">
+          <button type="button" class="emotion-chip" data-emotion="Miedo">Miedo</button>
+          <button type="button" class="emotion-chip" data-emotion="Alegría">Alegría</button>
+          <button type="button" class="emotion-chip" data-emotion="Tristeza">Tristeza</button>
+          <button type="button" class="emotion-chip" data-emotion="Enojo">Enojo</button>
+          <button type="button" class="emotion-chip" data-emotion="Afecto">Afecto</button>
+        </div>
+      </div>
+
+      <button id="save-text-entry" class="primary-button">Guardar Entrada</button>
+    </div>
+
+    <div id="screen-new-audio" class="screen">
+      <div class="date-row" style="border:none;">
+         <button id="back-from-audio" style="padding-left:0; font-size:24px;">←</button>
+         <h1 class="title" style="margin:0;">Grabar Audio</h1>
+         <div style="width:30px;"></div>
+      </div>
+
+      <div class="audio-controls">
+        <button id="record-button" class="record-button"></button>
+        <span id="record-status" class="audio-status">Pulsa para grabar</span>
+      </div>
+
+      <div class="input-box">
+        <textarea id="audio-transcript" placeholder="La transcripción aparecerá aquí..."></textarea>
+      </div>
+
+      <div class="emotion-selector">
+        <p class="emotion-label">¿CÓMO TE SIENTES?</p>
+        <div class="emotion-chips">
+          <button type="button" class="emotion-chip" data-emotion="Miedo">Miedo</button>
+          <button type="button" class="emotion-chip" data-emotion="Alegría">Alegría</button>
+          <button type="button" class="emotion-chip" data-emotion="Tristeza">Tristeza</button>
+          <button type="button" class="emotion-chip" data-emotion="Enojo">Enojo</button>
+          <button type="button" class="emotion-chip" data-emotion="Afecto">Afecto</button>
+        </div>
+      </div>
+
+      <button id="save-audio-entry" class="primary-button">Guardar Audio</button>
+    </div>
+
+    <div id="screen-summary" class="screen">
+      <div class="date-row" style="border:none;">
+         <button id="back-from-summary" style="padding-left:0; font-size:24px;">←</button>
+         <h1 class="title" style="margin:0;">Resumen Diario</h1>
+         <div style="width:30px;"></div>
+      </div>
+
+      <h2 class="section-title">Entradas de hoy</h2>
+      <div id="summary-entries" class="entries-list" style="flex:none; max-height:150px; overflow-y:auto; margin-bottom:20px;"></div>
+
+      <h2 class="section-title">Análisis IA</h2>
+      <div class="box">
+        <p id="summary-text" class="placeholder" style="margin:0;">
+          El resumen generado por IA aparecerá aquí...
+        </p>
+      </div>
+
+      <button id="generate-summary" class="secondary-button" style="font-size:12px; padding:5px; margin-bottom:20px;">🔄 Regenerar (Simulado)</button>
+
+      <h2 class="section-title">Gratitud (3 cosas)</h2>
+      <div class="gratitude-list">
+        <input id="gratitude-1" type="text" placeholder="1. Estoy agradecido por..." />
+        <input id="gratitude-2" type="text" placeholder="2. ..." />
+        <input id="gratitude-3" type="text" placeholder="3. ..." />
+      </div>
+
+      <button id="save-day" class="primary-button" style="margin-top:20px;">Guardar Todo</button>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

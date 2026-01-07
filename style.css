@@ -1,0 +1,359 @@
+/* ---------- RESET & BASE ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #191919; /* Fondo oscuro fuera del móvil */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* ---------- SIMULADOR MÓVIL (NOTION STYLE) ---------- */
+#app {
+  width: 390px;
+  height: 844px; /* Altura fija iPhone */
+  background: #F7F7F5; /* Fondo clásico "papel" de Notion */
+  border-radius: 40px; 
+  position: relative; /* Necesario para posicionar el FAB absoluto adentro */
+  overflow: hidden; 
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* ---------- GENERAL SCREENS ---------- */
+.screen {
+  display: none;
+  height: 100%;
+  overflow-y: auto; 
+  padding: 24px 20px;
+  /* Espacio extra abajo para que el botón '+' no tape nada al hacer scroll */
+  padding-bottom: 120px; 
+}
+
+.screen.active {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+  text-align: left;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 10px 0 20px;
+  color: #37352F;
+  letter-spacing: -0.5px;
+}
+
+/* ---------- DATE SELECTOR ---------- */
+.date-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.date-row button {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #9B9A97;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: color 0.2s;
+}
+
+.date-row button:hover {
+  color: #37352F;
+}
+
+#current-date-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #37352F;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- ENTRIES LIST ---------- */
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.entry-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border: 1px solid #E6E6E6;
+  transition: transform 0.1s;
+}
+
+.entry-card:active {
+  transform: scale(0.99);
+}
+
+.entry-time {
+  font-size: 11px;
+  color: #9B9A97;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.entry-text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #37352F;
+}
+
+.entry-emotion {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #787774;
+  background: #F0F0F0;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ---------- BUTTONS (Neutral Style) ---------- */
+.primary-button,
+.secondary-button {
+  width: 100%;
+  height: 44px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+.primary-button {
+  background: #2F2F2F;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.primary-button:hover {
+  background: #111;
+}
+
+.secondary-button {
+  background: transparent;
+  border: 1px solid #D0D0D0;
+  color: #555;
+}
+
+/* ---------- FAB (ARREGLADO: POSICIÓN Y CENTRADO) ---------- */
+.fab-container {
+  position: absolute; 
+  bottom: 90px; /* ELEVADO: Para no tapar el botón de resumen */
+  right: 24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Alinea los botones al centro verticalmente */
+  gap: 12px;
+  z-index: 100;
+}
+
+.fab-main {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: #2F2F2F; 
+  color: #fff;
+  font-size: 32px;
+
+  /* Centrado perfecto del icono + */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  padding-bottom: 4px;
+  line-height: 1;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.fab-main:active {
+  transform: scale(0.95);
+}
+
+.fab-bubble {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
+  color: #37352F;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+
+  /* Centrado perfecto de iconos Aa y Mic */
+  display: flex; 
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+}
+
+/* ---------- TEXT & INPUTS ---------- */
+.input-box {
+  background: transparent;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 200px;
+  border: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  background: transparent;
+  color: #37352F;
+  outline: none;
+  padding: 0;
+}
+
+textarea::placeholder {
+  color: #D3D3D3;
+}
+
+/* ---------- AUDIO CONTROLS ---------- */
+.audio-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 40px 0;
+}
+
+.record-button {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 1px solid #FFCDD2;
+  background: #FFEBEE;
+  color: #D32F2F;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.record-button.recording {
+  background: #D32F2F;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(211, 47, 47, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+}
+
+/* ---------- SUMMARY SECTION ---------- */
+.box {
+  background: #F0F0F0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #37352F;
+}
+
+/* ---------- SECTION TITLE ---------- */
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #9B9A97;
+  margin: 30px 0 10px;
+  border-bottom: 1px solid #E0E0E0;
+  padding-bottom: 5px;
+}
+
+/* ---------- GRATITUDE ---------- */
+.gratitude-list input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #E0E0E0;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 15px;
+  color: #37352F;
+  outline: none;
+  transition: border-color 0.2s;
+  border-radius: 0;
+}
+
+.gratitude-list input:focus {
+  border-bottom-color: #37352F;
+}
+
+/* ---------- EMOTION SELECTOR ---------- */
+.emotion-label {
+  font-size: 11px;
+  color: #9B9A97;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.emotion-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 10px;
+  padding-bottom: 5px;
+}
+
+.emotion-chip {
+  border-radius: 20px;
+  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
+  color: #37352F;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.emotion-chip:hover {
+  background: #F7F7F5;
+}
+
+.emotion-chip.selected {
+  background: #37352F;
+  color: #FFFFFF;
+  border-color: #37352F;
+}
+
+.hidden { display: none !important; }
