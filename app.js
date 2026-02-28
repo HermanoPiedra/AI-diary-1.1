@@ -1,7 +1,13 @@
 // ====== STATE & CONFIG ======
 
 // PEGA TU CLAVE NUEVA AQUÍ
-const GOOGLE_API_KEY = "AIzaSyC5DP6EL0AB_KVABOhJc2e6BLRi9nF_htg"; 
+const response = await fetch('https://ai-diary-worker.hermanopiedra.workers.dev', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt: prompt })
+});
+const data = await response.json();
+const text = data.result;
 
 // Vamos a probar primero con el modelo PRO (es el más compatible para evitar el error 404)
 // Si este funciona, luego podemos intentar cambiarlo a "gemini-1.5-flash"
