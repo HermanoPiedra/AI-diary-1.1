@@ -1,15 +1,22 @@
 // ====== STATE & CONFIG ======
 
-// ⚠️ PEGA TU CLAVE DENTRO DE LAS COMILLAS (empieza por AIza...)
-const GOOGLE_API_KEY = "AIzaSyD8sWkZ4f38T0P8zrT8WlyU0VR6Kyx5rV8"; 
+// PEGA TU CLAVE NUEVA AQUÍ
+const GOOGLE_API_KEY = "AIzaSyC5DP6EL0AB_KVABOhJc2e6BLRi9nF_htg"; 
 
-// Configuración de Gemini 1.5 Flash (Rápido y eficiente)
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
+// Vamos a probar primero con el modelo PRO (es el más compatible para evitar el error 404)
+// Si este funciona, luego podemos intentar cambiarlo a "gemini-1.5-flash"
+const MODEL_NAME = "gemini-2.0-flash";
 
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GOOGLE_API_KEY}`;
 const STORAGE_KEY = 'ai_diary_v1_data';
 let diary = {};
 let currentDate = getToday();
-let selectedEmotion = null; // Emoción seleccionada actualmente
+let selectedEmotion = null;
+
+console.log("-----------------------------------");
+console.log("INTENTANDO CONECTAR A:", MODEL_NAME);
+console.log("URL:", GEMINI_API_URL);
+console.log("-----------------------------------");
 
 // Variables de Audio
 let mediaRecorder = null;
@@ -22,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadFromLocal();
 
   // 2. Inicializar UI
-  updateDateLabel();
+  updateDateLabel();  
   renderEntries();
 
   // --- EVENT LISTENERS ---
@@ -448,7 +455,7 @@ function saveDayData() {
 
   alert("Datos del día guardados correctamente ✨");
   showScreen("screen-home");
-}`
+}
 
 // ==========================================
 // ====== CEREBRO IA (GOOGLE GEMINI) ========
@@ -504,13 +511,19 @@ async function transcribeAudioWithAI(audioBlob) {
 
 // 2. RESUMEN DIARIO (ESPEJO OBJETIVO)
 async function generateDailySummaryAI() {
-  ensureDay(currentDate);
+  // --- PASO 1: SEGURIDAD (Esto faltaba o fallaba antes) ---
+  // Nos aseguramos de que el día existe en la base de datos
+  ensureDay(currentDate); 
+  
+  // Obtenemos los datos del día actual
   const dayData = diary[currentDate];
 
-  if (!dayData.entries || dayData.entries.length === 0) {
-    alert("No hay entradas hoy para resumir.");
+  // Verificamos si realmente hay entradas. Si no hay, paramos aquí.
+  if (!dayData || !dayData.entries || dayData.entries.length === 0) {
+    alert("No hay entradas hoy para resumir. Escribe o graba algo primero.");
     return;
   }
+  // --------------------------------------------------------
 
   const summaryEl = document.getElementById("summary-text");
   const btn = document.getElementById("generate-summary");
@@ -520,27 +533,46 @@ async function generateDailySummaryAI() {
   summaryEl.style.opacity = "0.5";
   btn.disabled = true;
 
-  // Preparar datos para el prompt
+  // --- PASO 2: PREPARAR DATOS (Tu parte del error) ---
+  // Ahora es seguro ejecutar esto porque ya validamos arriba
   let textToAnalyze = `Fecha: ${currentDate}\n`;
-  dayData.entries.forEach(e => {
-    textToAnalyze += `[${e.time}] [Emoción Usuario: ${e.emotion}] Texto: ${e.text}\n`;
-  });
+  
+  try {
+    dayData.entries.forEach(e => {
+      textToAnalyze += `[${e.time}] [Emoción Usuario: ${e.emotion}] Texto: ${e.text}\n`;
+    });
+  } catch (err) {
+    console.error("Error leyendo entradas:", err);
+    alert("Hubo un error leyendo tus entradas.");
+    btn.disabled = false;
+    return;
+  }
 
-  // Prompt: Filosofía de "Espejo Objetivo"
-  const prompt = `
-    Actúa como un asistente de registro objetivo (Logbook).
-    TAREA: Generar un reporte ejecutivo del día.
-    
-    REGLAS FILOSÓFICAS:
-    1. NO eres terapeuta. NO des consejos. NO des ánimos.
-    2. Mantén un tono neutral, periodístico y directo.
-    3. Identifica hechos clave, personas y patrones emocionales reportados explícitamente.
-    4. Estilo: Breve y estructurado.
-    
-    DATOS DEL USUARIO:
-    ${textToAnalyze}
-  `;
+  // --- PASO 3: PROMPT ---
+ const prompt = `
+  Eres un sistema de registro personal. Tu única función es organizar y resumir 
+  lo que el usuario escribió durante el día.
 
+  REGLAS ABSOLUTAS:
+  1. Resume SOLO lo que el usuario dijo explícitamente. Nada más.
+  2. Agrupa entradas relacionadas para evitar redundancia.
+  3. Al final del resumen, incluye siempre una sección "Emociones del día:" 
+     listando ÚNICAMENTE las emociones que el usuario nombró explícitamente.
+  4. Tono: Neutral, claro, directo. Sin calidez, sin juicio, sin consejo.
+  5. Prohibido: frases de ánimo, interpretaciones, evaluaciones, sugerencias.
+  6. El resumen no califica el día como bueno o malo.
+  7. Sin markdown. Párrafos cortos. Máximo 5-6 oraciones + la sección de emociones.
+  8. Empieza directamente con el contenido del resumen. 
+   Nunca uses encabezados como "Resumen del día:" o frases introductorias.
+
+  RECORDATORIO: Esta app organiza lo que el usuario dice. 
+  No le explica al usuario quién es.
+
+  ENTRADAS DEL DÍA:
+  ${textToAnalyze}
+`;
+
+  // --- PASO 4: LLAMADA A LA API ---
   try {
     const response = await fetch(GEMINI_API_URL, {
       method: "POST",
@@ -558,13 +590,15 @@ async function generateDailySummaryAI() {
       summaryEl.textContent = summary;
       summaryEl.classList.remove("placeholder");
       saveToLocal();
+    } else {
+      throw new Error("La IA no devolvió respuesta.");
     }
 
   } catch (error) {
     console.error(error);
-    summaryEl.textContent = "Error al generar resumen. Verifica la consola.";
+    summaryEl.textContent = "Error al generar resumen. Verifica la consola (F12) para ver detalles.";
   } finally {
     summaryEl.style.opacity = "1";
     btn.disabled = false;
   }
-}`
+}
