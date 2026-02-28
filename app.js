@@ -1,28 +1,11 @@
 // ====== STATE & CONFIG ======
 
-// PEGA TU CLAVE NUEVA AQUÍ
-const response = await fetch('https://ai-diary-worker.hermanopiedra.workers.dev', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ prompt: prompt })
-});
-const data = await response.json();
-const text = data.result;
 
-// Vamos a probar primero con el modelo PRO (es el más compatible para evitar el error 404)
-// Si este funciona, luego podemos intentar cambiarlo a "gemini-1.5-flash"
-const MODEL_NAME = "gemini-2.0-flash";
-
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GOOGLE_API_KEY}`;
 const STORAGE_KEY = 'ai_diary_v1_data';
 let diary = {};
 let currentDate = getToday();
 let selectedEmotion = null;
 
-console.log("-----------------------------------");
-console.log("INTENTANDO CONECTAR A:", MODEL_NAME);
-console.log("URL:", GEMINI_API_URL);
-console.log("-----------------------------------");
 
 // Variables de Audio
 let mediaRecorder = null;
@@ -492,16 +475,16 @@ async function transcribeAudioWithAI(audioBlob) {
         }]
       };
 
-      const response = await fetch(GEMINI_API_URL, {
+      const response = await fetch('https://ai-diary-worker.hermanopiedra.workers.dev', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ type: "audio", payload })
       });
 
       const data = await response.json();
       
-      if (data.candidates && data.candidates[0].content) {
-        const cleanText = data.candidates[0].content.parts[0].text.trim();
+      if (data.result) {
+        const cleanText = data.result.trim();
         transcriptEl.value = cleanText;
         statusEl.textContent = "Transcripción completada.";
       } else {
@@ -580,16 +563,16 @@ async function generateDailySummaryAI() {
 
   // --- PASO 4: LLAMADA A LA API ---
   try {
-    const response = await fetch(GEMINI_API_URL, {
+    const response = await fetch('https://ai-diary-worker.hermanopiedra.workers.dev', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      body: JSON.stringify({ type: "text", prompt })
     });
 
     const data = await response.json();
     
-    if (data.candidates && data.candidates[0].content) {
-      const summary = data.candidates[0].content.parts[0].text;
+    if (data.result) {
+      const summary = data.result;
       
       // Guardar y mostrar
       dayData.summary = summary;
