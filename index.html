@@ -12,11 +12,7 @@
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#2F2F2F" />
 </head>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js');
-  }
-</script>
+
 <body>
   <div id="app">
 
@@ -130,5 +126,12 @@
   </div>
 
   <script src="app.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/AI-diary-1.1/service-worker.js');
+  }
+</script>
+
 </body>
 </html>
