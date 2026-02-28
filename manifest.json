@@ -2,11 +2,12 @@
   "name": "AI Diary",
   "short_name": "AI Diary",
   "description": "Tu diario personal con resumen inteligente",
-  "start_url": "/index.html",
+  "start_url": "/AI-diary-1.1/",
   "display": "standalone",
   "background_color": "#191919",
   "theme_color": "#2F2F2F",
   "orientation": "portrait",
+  "scope": "/AI-diary-1.1/",
   "icons": [
     { "src": "icons/icon-72x72.png",   "sizes": "72x72",   "type": "image/png" },
     { "src": "icons/icon-96x96.png",   "sizes": "96x96",   "type": "image/png" },
