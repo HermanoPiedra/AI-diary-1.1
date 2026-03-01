@@ -84,7 +84,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Grabadora
   document.getElementById("record-button").addEventListener("click", toggleRecording);
-});
+  // Calendario
+  document.getElementById('current-date-label').addEventListener('click', toggleCalendar);
+
+  document.getElementById('cal-prev-month').addEventListener('click', () => {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    renderCalendar();
+  });
+
+  document.getElementById('cal-next-month').addEventListener('click', () => {
+    calendarDate.setMonth(calendarDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  document.getElementById('app').addEventListener('click', (e) => {
+    const popup = document.getElementById('calendar-popup');
+    const label = document.getElementById('current-date-label');
+    if (!popup.contains(e.target) && e.target !== label) {
+      popup.style.display = 'none';
+    }
+  });
+
+}); // ← cierre del DOMContentLoaded
 
 // ====== LOCAL STORAGE (PERSISTENCIA) ======
 
@@ -153,7 +174,6 @@ function updateDateLabel() {
 // ====== CALENDARIO ======
 let calendarDate = new Date();
 
-document.getElementById('current-date-label').addEventListener('click', toggleCalendar);
 
 function toggleCalendar() {
   const popup = document.getElementById('calendar-popup');
@@ -167,15 +187,6 @@ function toggleCalendar() {
   }
 }
 
-document.getElementById('cal-prev-month').addEventListener('click', () => {
-  calendarDate.setMonth(calendarDate.getMonth() - 1);
-  renderCalendar();
-});
-
-document.getElementById('cal-next-month').addEventListener('click', () => {
-  calendarDate.setMonth(calendarDate.getMonth() + 1);
-  renderCalendar();
-});
 
 function renderCalendar() {
   const grid = document.getElementById('cal-grid');
@@ -223,13 +234,6 @@ function selectCalendarDay(dateStr) {
 }
 
 // Cerrar calendario al tocar fuera
-document.getElementById('app').addEventListener('click', (e) => {
-  const popup = document.getElementById('calendar-popup');
-  const label = document.getElementById('current-date-label');
-  if (!popup.contains(e.target) && e.target !== label) {
-    popup.style.display = 'none';
-  }
-});
 function ensureDay(dateStr) {
   if (!diary[dateStr]) {
     diary[dateStr] = {
