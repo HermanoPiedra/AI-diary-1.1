@@ -633,7 +633,7 @@ async function generateDailySummaryAI() {
   4. Tono: Neutral, claro, directo. Sin calidez, sin juicio, sin consejo.
   5. Prohibido: frases de ánimo, interpretaciones, evaluaciones, sugerencias.
   6. El resumen no califica el día como bueno o malo.
-  7. Sin markdown. Párrafos cortos. Máximo 5-6 oraciones + la sección de emociones.
+  7. Sin markdown. Párrafos cortos. Máximo 5-6 oraciones + la sección de emociones en un parrafo separado.
   8. Empieza directamente con el contenido del resumen. 
    Nunca uses encabezados como "Resumen del día:" o frases introductorias.
 
