@@ -150,7 +150,86 @@ function updateDateLabel() {
     label.textContent = formatDateLabel(currentDate);
   }
 }
+// ====== CALENDARIO ======
+let calendarDate = new Date();
 
+document.getElementById('current-date-label').addEventListener('click', toggleCalendar);
+
+function toggleCalendar() {
+  const popup = document.getElementById('calendar-popup');
+  if (popup.style.display === 'none') {
+    const parts = currentDate.split('-');
+    calendarDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    renderCalendar();
+    popup.style.display = 'block';
+  } else {
+    popup.style.display = 'none';
+  }
+}
+
+document.getElementById('cal-prev-month').addEventListener('click', () => {
+  calendarDate.setMonth(calendarDate.getMonth() - 1);
+  renderCalendar();
+});
+
+document.getElementById('cal-next-month').addEventListener('click', () => {
+  calendarDate.setMonth(calendarDate.getMonth() + 1);
+  renderCalendar();
+});
+
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const label = document.getElementById('cal-month-label');
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+
+  label.textContent = new Date(year, month).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+
+  let html = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(d => 
+    `<div style="color:#9B9A97; font-weight:600; padding:4px 0;">${d}</div>`
+  ).join('');
+
+  for (let i = 0; i < startOffset; i++) html += '<div></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === getToday();
+    const isSelected = dateStr === currentDate;
+    const hasEntries = diary[dateStr] && diary[dateStr].entries && diary[dateStr].entries.length > 0;
+
+    html += `<div onclick="selectCalendarDay('${dateStr}')" style="
+      padding: 6px 2px;
+      border-radius: 50%;
+      cursor: pointer;
+      background: ${isSelected ? '#2F2F2F' : 'transparent'};
+      color: ${isSelected ? '#fff' : isToday ? '#2F2F2F' : '#37352F'};
+      font-weight: ${isToday ? '700' : '400'};
+      position: relative;
+    ">${d}${hasEntries ? '<span style="position:absolute; bottom:1px; left:50%; transform:translateX(-50%); width:4px; height:4px; background:#9B9A97; border-radius:50%; display:block;"></span>' : ''}</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function selectCalendarDay(dateStr) {
+  currentDate = dateStr;
+  updateDateLabel();
+  renderEntries();
+  document.getElementById('calendar-popup').style.display = 'none';
+}
+
+// Cerrar calendario al tocar fuera
+document.getElementById('app').addEventListener('click', (e) => {
+  const popup = document.getElementById('calendar-popup');
+  const label = document.getElementById('current-date-label');
+  if (!popup.contains(e.target) && e.target !== label) {
+    popup.style.display = 'none';
+  }
+});
 function ensureDay(dateStr) {
   if (!diary[dateStr]) {
     diary[dateStr] = {

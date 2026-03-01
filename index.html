@@ -19,11 +19,21 @@
     <div id="screen-home" class="screen active">
       <h1 class="title">AI Diary</h1>
 
-      <div class="date-row">
-        <button id="prev-day">&lt;</button>
-        <span id="current-date-label">Hoy</span>
-        <button id="next-day">&gt;</button>
-      </div>
+     <div class="date-row">
+  <button id="prev-day">&lt;</button>
+  <span id="current-date-label" style="cursor:pointer;">Hoy</span>
+  <button id="next-day">&gt;</button>
+</div>
+
+<!-- Calendario popup -->
+<div id="calendar-popup" style="display:none; position:absolute; top:80px; left:50%; transform:translateX(-50%); background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.15); padding:16px; z-index:200; width:300px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <button id="cal-prev-month" style="background:none; border:none; font-size:18px; cursor:pointer;">‹</button>
+    <span id="cal-month-label" style="font-weight:600; font-size:14px;"></span>
+    <button id="cal-next-month" style="background:none; border:none; font-size:18px; cursor:pointer;">›</button>
+  </div>
+  <div id="cal-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; font-size:13px;"></div>
+</div>
 
       <div id="entries-list" class="entries-list">
         </div>
