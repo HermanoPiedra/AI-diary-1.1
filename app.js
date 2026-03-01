@@ -105,6 +105,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Resumen semanal
+  document.getElementById('go-to-weekly').addEventListener('click', openWeeklyScreen);
+  document.getElementById('back-from-weekly').addEventListener('click', () => showScreen('screen-home'));
+  document.getElementById('generate-weekly').addEventListener('click', generateWeeklySummary);
+
+  document.querySelectorAll('.period-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      weeklyPeriod = parseInt(chip.dataset.period);
+      updatePeriodChips();
+      if (weeklyRangeType === 'default') calculateDefaultRange();
+      updateRangeDisplay();
+    });
+  });
+
+  document.querySelectorAll('.range-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      weeklyRangeType = chip.dataset.range;
+      updateRangeChips();
+    });
+  });
+
+  document.getElementById('weekly-start-date').addEventListener('change', (e) => {
+    weeklyStartDate = e.target.value;
+    const endDate = getWeeklyEndDate();
+    document.getElementById('weekly-end-date').value = endDate;
+    updateRangeDisplay();
+  });
+
+  document.getElementById('save-pref-yes').addEventListener('click', () => {
+    localStorage.setItem('weekly_preference', JSON.stringify({
+      period: weeklyPeriod,
+      rangeType: weeklyRangeType
+    }));
+    document.getElementById('save-preference-box').style.display = 'none';
+    alert('Preferencia guardada ✅');
+  });
+
+  document.getElementById('save-pref-no').addEventListener('click', () => {
+    document.getElementById('save-preference-box').style.display = 'none';
+  });
+
 }); // ← cierre del DOMContentLoaded
 
 // ====== LOCAL STORAGE (PERSISTENCIA) ======
@@ -672,5 +713,150 @@ async function generateDailySummaryAI() {
   } finally {
     summaryEl.style.opacity = "1";
     btn.disabled = false;
+  }
+}
+
+// ====== RESUMEN SEMANAL/QUINCENAL ======
+
+let weeklyPeriod = 7;
+let weeklyRangeType = 'default';
+let weeklyStartDate = null;
+
+function openWeeklyScreen() {
+  // Cargar preferencia guardada
+  const savedPref = localStorage.getItem('weekly_preference');
+  if (savedPref) {
+    const pref = JSON.parse(savedPref);
+    weeklyPeriod = pref.period;
+    weeklyRangeType = pref.rangeType;
+    updatePeriodChips();
+    updateRangeChips();
+  }
+
+  calculateDefaultRange();
+  updateRangeDisplay();
+  document.getElementById('weekly-result').style.display = 'none';
+  document.getElementById('save-preference-box').style.display = 'none';
+  showScreen('screen-weekly');
+}
+
+function calculateDefaultRange() {
+  const d = new Date(currentDate);
+  const day = d.getDay(); // 0=dom, 1=lun...
+  const diffToMonday = (day === 0) ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMonday);
+  weeklyStartDate = monday.toLocaleDateString('en-CA');
+}
+
+function getWeeklyEndDate() {
+  const start = new Date(weeklyStartDate);
+  const end = new Date(start);
+  end.setDate(start.getDate() + weeklyPeriod - 1);
+  return end.toLocaleDateString('en-CA');
+}
+
+function updateRangeDisplay() {
+  const endDate = getWeeklyEndDate();
+  const start = formatDateLabel(weeklyStartDate);
+  const end = formatDateLabel(endDate);
+  document.getElementById('weekly-range-display').textContent = `📅 ${start} → ${end}`;
+}
+
+function updatePeriodChips() {
+  document.querySelectorAll('.period-chip').forEach(chip => {
+    chip.classList.toggle('selected', parseInt(chip.dataset.period) === weeklyPeriod);
+  });
+}
+
+function updateRangeChips() {
+  document.querySelectorAll('.range-chip').forEach(chip => {
+    chip.classList.toggle('selected', chip.dataset.range === weeklyRangeType);
+  });
+  const customPicker = document.getElementById('custom-range-picker');
+  customPicker.style.display = weeklyRangeType === 'custom' ? 'block' : 'none';
+  if (weeklyRangeType === 'default') calculateDefaultRange();
+  updateRangeDisplay();
+}
+
+async function generateWeeklySummary() {
+  const endDate = getWeeklyEndDate();
+
+  // Recoger todas las entradas del período
+  let allEntries = [];
+  let start = new Date(weeklyStartDate);
+  for (let i = 0; i < weeklyPeriod; i++) {
+    const dateStr = start.toLocaleDateString('en-CA');
+    if (diary[dateStr] && diary[dateStr].entries && diary[dateStr].entries.length > 0) {
+      diary[dateStr].entries.forEach(e => {
+        allEntries.push({ date: dateStr, ...e });
+      });
+    }
+    start.setDate(start.getDate() + 1);
+  }
+
+  if (allEntries.length === 0) {
+    alert('No hay entradas en este período.');
+    return;
+  }
+
+  const btn = document.getElementById('generate-weekly');
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+
+  let textToAnalyze = `Período: ${formatDateLabel(weeklyStartDate)} → ${formatDateLabel(endDate)}\n\n`;
+  allEntries.forEach(e => {
+    textToAnalyze += `[${e.date} ${e.time}] [Emoción: ${e.emotion}] ${e.text}\n`;
+  });
+
+  const maxSentences = weeklyPeriod === 7 ? '8-10' : '12-14';
+
+  const prompt = `
+Eres un sistema de registro personal. Analiza las entradas de este período y genera DOS secciones separadas.
+
+SECCIÓN 1 - RESUMEN:
+- Máximo ${maxSentences} oraciones. Si hay poco contenido, sintetiza en menos.
+- Resume SOLO lo que el usuario dijo explícitamente.
+- Agrupa por temas o días relacionados.
+- Tono neutral, directo, sin juicios ni consejos.
+- Empieza directamente sin encabezados.
+
+SECCIÓN 2 - TEMAS RECURRENTES:
+- Identifica temas, personas o situaciones que aparezcan en 2 o más días distintos.
+- Formato: "• [Tema]: aparece X veces" seguido de una frase breve explicando el patrón.
+- Si no hay temas recurrentes claros, escribe "Sin temas recurrentes destacables."
+
+SEPARADOR: Usa exactamente "---RECURRENTES---" entre las dos secciones.
+
+ENTRADAS:
+${textToAnalyze}
+`;
+
+  try {
+    const response = await fetch('https://ai-diary-worker.hermanopiedra.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'text', prompt })
+    });
+
+    const data = await response.json();
+
+    if (data.result) {
+      const parts = data.result.split('---RECURRENTES---');
+      document.getElementById('weekly-summary-text').textContent = parts[0].trim();
+      document.getElementById('weekly-recurring-text').textContent = parts[1] ? parts[1].trim() : 'Sin temas recurrentes destacables.';
+      document.getElementById('weekly-result').style.display = 'block';
+
+      // Mostrar opción de guardar preferencia si no hay una guardada
+      if (!localStorage.getItem('weekly_preference')) {
+        document.getElementById('save-preference-box').style.display = 'block';
+      }
+    }
+  } catch (error) {
+    alert('Error al generar el resumen. Inténtalo de nuevo.');
+    console.error(error);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generar Resumen';
   }
 }

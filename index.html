@@ -38,9 +38,14 @@
       <div id="entries-list" class="entries-list">
         </div>
 
-      <button id="go-to-summary" class="primary-button" style="background:#E0E0E0; color:#37352F; margin-top:auto;">
+
+        <button id="go-to-summary" class="primary-button" style="background:#E0E0E0; color:#37352F; margin-top:auto;">
         Ver Resumen del Día ✨
       </button>
+
+      <button id="go-to-weekly" class="primary-button" style="background:#E0E0E0; color:#37352F; margin-bottom:8px;">
+  Ver Resumen Semanal 📊
+</button>
 
       <div class="fab-container">
         <button id="fab-text" class="fab-bubble fab-option">Aa</button>
@@ -132,8 +137,70 @@
 
       <button id="save-day" class="primary-button" style="margin-top:20px;">Guardar Todo</button>
     </div>
-
+<div id="screen-weekly" class="screen">
+  <div class="date-row" style="border:none;">
+    <button id="back-from-weekly" style="padding-left:0; font-size:24px;">←</button>
+    <h1 class="title" style="margin:0;">Resumen Periódico</h1>
+    <div style="width:30px;"></div>
   </div>
+
+  <!-- Selector tipo -->
+  <h2 class="section-title">Período</h2>
+  <div style="display:flex; gap:10px; margin-bottom:20px;">
+    <button class="period-chip selected" data-period="7">Semanal</button>
+    <button class="period-chip" data-period="14">Quincenal</button>
+  </div>
+
+  <!-- Rango de fechas -->
+  <h2 class="section-title">Rango</h2>
+  <div style="display:flex; gap:10px; margin-bottom:8px;">
+    <button class="range-chip selected" data-range="default">Por defecto</button>
+    <button class="range-chip" data-range="custom">Personalizado</button>
+  </div>
+
+  <div id="weekly-range-display" style="font-size:14px; color:#787774; margin-bottom:8px;"></div>
+
+  <!-- Custom picker (oculto por defecto) -->
+  <div id="custom-range-picker" style="display:none; margin-bottom:16px;">
+    <div style="display:flex; gap:12px; align-items:center; font-size:14px;">
+      <div>
+        <label style="font-size:11px; color:#9B9A97; display:block; margin-bottom:4px;">DESDE</label>
+        <input type="date" id="weekly-start-date" style="border:1px solid #E0E0E0; border-radius:6px; padding:8px; font-size:14px; color:#37352F;" />
+      </div>
+      <div style="padding-top:16px; color:#9B9A97;">→</div>
+      <div>
+        <label style="font-size:11px; color:#9B9A97; display:block; margin-bottom:4px;">HASTA</label>
+        <input type="date" id="weekly-end-date" style="border:1px solid #E0E0E0; border-radius:6px; padding:8px; font-size:14px; color:#37352F;" readonly />
+      </div>
+    </div>
+    <p style="font-size:11px; color:#9B9A97; margin-top:8px;">El período siempre es de 7 o 14 días desde la fecha de inicio.</p>
+  </div>
+
+  <!-- Guardar preferencia -->
+  <div id="save-preference-box" style="display:none; background:#F0F0F0; border-radius:8px; padding:12px; margin-bottom:16px; font-size:13px; color:#555;">
+    ¿Guardar esta configuración para futuros resúmenes?
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button id="save-pref-yes" class="primary-button" style="height:32px; font-size:12px; margin-top:0;">Sí, guardar</button>
+      <button id="save-pref-no" class="secondary-button" style="height:32px; font-size:12px; margin-top:0;">No</button>
+    </div>
+  </div>
+
+  <button id="generate-weekly" class="primary-button">Generar Resumen</button>
+
+  <!-- Resultado -->
+  <div id="weekly-result" style="display:none; margin-top:24px;">
+    <h2 class="section-title">Resumen</h2>
+    <div class="box">
+      <p id="weekly-summary-text" style="margin:0; font-size:14px; line-height:1.7;"></p>
+    </div>
+    <h2 class="section-title">Temas Recurrentes</h2>
+    <div class="box">
+      <p id="weekly-recurring-text" style="margin:0; font-size:14px; line-height:1.7;"></p>
+    </div>
+  </div>
+</div>
+ 
+</div>
 
   <script src="app.js"></script>
 

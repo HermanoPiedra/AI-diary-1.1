@@ -358,3 +358,21 @@ textarea::placeholder {
 }
 
 .hidden { display: none !important; }
+
+/* ---------- PERIOD & RANGE CHIPS ---------- */
+.period-chip, .range-chip {
+  border-radius: 20px;
+  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
+  color: #37352F;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.period-chip.selected, .range-chip.selected {
+  background: #37352F;
+  color: #FFFFFF;
+  border-color: #37352F;
+}
